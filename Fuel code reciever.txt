@@ -1,0 +1,77 @@
+
+#include <M5Core2.h>
+#include <esp_now.h>
+#include <WiFi.h>
+int valueRead1 = 9999; // Here we set an integer and initialize it
+int valueRead2 = 9999; // Here we set an integer and initialize it
+int valueRead3 = 9999; // Here we set an integer and initialize it
+//Structure example to receive data
+//Must match the sender structure
+typedef struct test_struct {
+  int x;
+  int y;
+  int z;
+int cel;
+int  fah;
+} test_struct;
+
+//Create a struct_message called myData
+test_struct myData;
+
+//callback function that will be executed when data is received
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  memcpy(&myData, incomingData, sizeof(myData));
+  Serial.print("Bytes received: ");
+  Serial.println(len);
+  Serial.print("x: ");
+  Serial.println(myData.x);
+  Serial.print("y: ");
+  Serial.println(myData.y);
+  Serial.print("Z: ");
+  Serial.println(myData.z);
+Serial.print("celsius reading = : ");
+  Serial.println(myData.cel);
+  Serial.print("fah reading: ");
+  Serial.println(myData.fah);
+  Serial.println();
+
+
+}
+ 
+void setup() {
+M5.begin(); //Init M5Core2. 
+  //Initialize Serial Monitor
+  Serial.begin(115200);
+  //Set device as a Wi-Fi Station
+  WiFi.mode(WIFI_STA);
+
+  //Init ESP-NOW
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+  
+  // Once ESPNow is successfully Init, we will register for recv CB to
+  // get recv packer info
+  esp_now_register_recv_cb(OnDataRecv);
+}
+ 
+void loop() 
+{ 
+  if(myData.x>=70 && myData.y>70 && myData.z>70)
+  {
+  M5.Lcd.fillRect(50, 175, 30, 50, RED);//Draw a blue rectangle 50x50 at (x,y)
+}
+else if(myData.x<=60 && myData.y<=60 && myData.z>70)
+ { M5.Lcd.fillRect(50, 175, 30, 50, RED);//Draw a blue rectangle 50x50 at (x,y)
+ M5.Lcd.fillRect(85, 155, 30, 75, BLUE);//Draw a blue filled rectangle with a length of 122 and a width of 10 at (150,120)
+}
+else if(myData.x<=50 && myData.y<=50 && myData.z<=50)
+ { 
+  M5.Lcd.fillRect(50, 175, 30, 50, RED);   
+M5.Lcd.fillRect(85, 145, 30, 75, BLUE);
+M5.Lcd.fillRect(115, 115, 30, 115, GREEN);
+}
+ M5.Lcd.clear();  
+
+}
